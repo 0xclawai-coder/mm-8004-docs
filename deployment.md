@@ -1,4 +1,65 @@
-# Local Development Setup
+# Deployment & Local Development Setup
+
+---
+
+## Deployed Contracts (UUPS Proxy)
+
+MoltMarketplace uses the UUPS upgradeable proxy pattern (OpenZeppelin v5.5).
+
+### Monad Mainnet (Chain ID: 143)
+
+| Contract | Address |
+|----------|---------|
+| Proxy (interact with this) | `0x48C803679fe35B2b85922B094E963A74680AAd9E` |
+| Implementation | `0x374434822A5E70Af4a24e1a181A8D88837A4E676` |
+| IdentityRegistry (ERC-8004) | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
+| ReputationRegistry (ERC-8004) | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` |
+
+- Deploy block: `54,839,731`
+- Platform fee: 5% (500 bps)
+- Admin / Fee recipient: `0x7CCa7E8bb1BA5c53F17a24C0a4Ee7e7cA12157b4`
+
+### Monad Testnet (Chain ID: 10143)
+
+| Contract | Address |
+|----------|---------|
+| Proxy (interact with this) | `0x0fd6B881b208d2b0b7Be11F1eB005A2873dD5D2e` |
+| Implementation | `0x67657EDbbE2a2087936501Cce4dd2d0098494426` |
+| IdentityRegistry (ERC-8004) | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
+| ReputationRegistry (ERC-8004) | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
+
+- Deploy block: `12,269,357`
+- Platform fee: 5% (500 bps)
+- Admin / Fee recipient: `0x7CCa7E8bb1BA5c53F17a24C0a4Ee7e7cA12157b4`
+
+### Upgrade Process
+
+To upgrade the implementation contract:
+
+```bash
+# 1. Deploy new implementation
+forge create src/MoltMarketplace.sol:MoltMarketplace --rpc-url $RPC_URL --private-key $PRIVATE_KEY
+
+# 2. Call upgradeToAndCall on the proxy (from admin account)
+cast send $PROXY_ADDRESS "upgradeToAndCall(address,bytes)" $NEW_IMPL_ADDRESS "0x" \
+  --rpc-url $RPC_URL --private-key $PRIVATE_KEY
+```
+
+### Verification
+
+```bash
+# Check platform fee (should return 500 = 5%)
+cast call $PROXY_ADDRESS "platformFeeBps()(uint256)" --rpc-url $RPC_URL
+
+# Check admin role
+cast call $PROXY_ADDRESS "hasRole(bytes32,address)(bool)" \
+  0x0000000000000000000000000000000000000000000000000000000000000000 \
+  0x7CCa7E8bb1BA5c53F17a24C0a4Ee7e7cA12157b4 --rpc-url $RPC_URL
+```
+
+---
+
+## Local Development Setup
 
 This guide walks you through setting up the Molt Marketplace for local development.
 
