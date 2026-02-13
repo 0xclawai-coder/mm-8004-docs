@@ -1,18 +1,121 @@
-# Documentation Directory
+# Molt Marketplace (ERC-8004)
 
-## Purpose
-Central repository for all Molt Marketplace project documentation.
+> NFT marketplace for AI agent identities on Monad. Built for the Monad hackathon.
 
-## Contents
-- Architecture and design documents
-- API specifications
-- Development and deployment guides
-- Best practices and conventions
+## What Is This?
 
-## Format
-All documentation is written in Markdown (.md) format for easy version control and readability.
+Molt Marketplace is a full-stack NFT marketplace built on the Monad blockchain, specifically designed for trading ERC-8004 (Agent Identity) NFTs. It combines an agent identity explorer with a full-featured trading platform supporting fixed-price listings, English auctions, Dutch auctions, bundle sales, offers, and collection offers.
 
-## Target Audience
-- Developers working on the project
-- DevOps teams handling deployment
-- Stakeholders reviewing project architecture
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, wagmi, viem, recharts
+- **Backend**: Rust, Axum, sqlx, alloy (on-chain event indexer)
+- **Database**: PostgreSQL 15+
+- **Smart Contract**: Solidity ^0.8.28, Foundry, OpenZeppelin v5, UUPS Upgradeable
+- **Chain**: Monad Mainnet (chain 143) + Monad Testnet (chain 10143)
+
+## Repository Structure
+
+```
+molt-marketplace-8004/
+├── frontend/          # Next.js 15 app (Vercel-deployed)
+├── backend/           # Rust API + on-chain indexer (Railway-deployed)
+├── contract/          # MoltMarketplace.sol (Foundry)
+├── docs/              # Architecture, API docs, deployment guide
+├── CLAUDE.md          # Agent team roles and project guidelines
+└── DOCS-REVIEW.md     # Documentation completeness audit
+```
+
+## Key Files
+
+- `contract/src/MoltMarketplace.sol` — Main marketplace contract (UUPS proxy)
+- `contract/src/interfaces/IMoltMarketplace.sol` — Interface + structs/enums/events
+- `backend/src/api/` — API route handlers (agents, marketplace, leaderboard, stats, activity)
+- `backend/src/indexer/` — Monad event indexer (identity, reputation, marketplace events)
+- `frontend/src/lib/api.ts` — API client with all endpoint functions
+- `frontend/src/types/index.ts` — All TypeScript type definitions
+- `frontend/src/components/agents/HoloCard.tsx` — Signature holographic 3D agent card
+
+## Contract Addresses
+
+### Monad Mainnet (Chain 143)
+- MoltMarketplace Proxy: `0x48C803679fe35B2b85922B094E963A74680AAd9E`
+- IdentityRegistry: `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
+- ReputationRegistry: `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`
+
+### Monad Testnet (Chain 10143)
+- MoltMarketplace Proxy: `0x0fd6B881b208d2b0b7Be11F1eB005A2873dD5D2e`
+- IdentityRegistry: `0x8004A818BFB912233c491871b3d84c89A494BD9e`
+- ReputationRegistry: `0x8004B663056A597Dffe9eCcC1965A193B7388713`
+
+## API Endpoints (Backend — default port 3001)
+
+### Agent Identity
+- `GET /api/agents` — List agents (search, filter, sort, paginate)
+- `GET /api/agents/:id` — Agent detail (composite ID: `{chainId}-{agentId}`)
+- `GET /api/agents/:id/reputation` — Reputation history + feedbacks
+- `GET /api/agents/:id/activity` — Agent activity log
+- `GET /api/activity` — Global activity feed
+- `GET /api/leaderboard` — Agents ranked by reputation
+- `GET /api/stats` — Global dashboard statistics
+
+### Marketplace
+- `GET /api/marketplace/listings` — Fixed-price NFT listings
+- `GET /api/marketplace/listings/{id}` — Listing detail
+- `GET /api/marketplace/offers` — ERC-20 offers
+- `GET /api/marketplace/collection-offers` — Collection-wide offers
+- `GET /api/marketplace/auctions` — English auctions
+- `GET /api/marketplace/auctions/{id}` — Auction detail with bids
+- `GET /api/marketplace/dutch-auctions` — Dutch auctions
+- `GET /api/marketplace/bundles` — Bundle listings
+- `GET /api/marketplace/user/{address}` — User portfolio
+- `GET /api/marketplace/stats` — Marketplace statistics
+
+## Frontend Routes
+
+- `/` — Home
+- `/explore/agents` — Agent explorer (browse, search, filter)
+- `/explore/agents/[chainId]/[agentId]` — Agent detail with HoloCard
+- `/explore/activity` — Global activity feed
+- `/trade/marketplace` — NFT marketplace listings
+- `/trade/marketplace/[chainId]/[listingId]` — Listing detail
+- `/trade/auctions` — English & Dutch auctions
+- `/trade/auctions/[chainId]/[auctionId]` — Auction detail
+- `/trade/bundles` — Bundle listings
+- `/analytics/overview` — Analytics dashboard
+- `/analytics/leaderboard` — Reputation leaderboard
+- `/analytics/rankings` — Rankings
+- `/create` — Register new agent (Create Molt)
+- `/profile` — User profile
+
+## Smart Contract Features
+
+MoltMarketplace.sol (UUPS Upgradeable):
+- Fixed-price listings (native MON + ERC-20)
+- Offers (ERC-20, lazy escrow)
+- Collection offers (any tokenId in a collection)
+- English auctions (reserve price, buy-now, anti-snipe, scheduled start)
+- Dutch auctions (linear price decay)
+- Bundle listings (up to 20 NFTs)
+- ERC-2981 royalty support
+- AccessControl (4 roles: ADMIN, PAUSER, FEE_MANAGER, TOKEN_MANAGER)
+- Payment token whitelist
+- Emergency pause/unpause
+- Platform fee (dynamic, 10% hard cap)
+- 133 Foundry tests passing
+
+## Deployments
+
+- Frontend: Vercel (`mm-8004-frontend.vercel.app`)
+- Backend: Railway (`nad-8004-backend-production.up.railway.app`)
+- Contracts: Monad Mainnet + Testnet (see addresses above)
+
+## Documentation
+
+- `docs/architecture.md` — System architecture and data flow
+- `docs/api-contract.md` — API endpoint specification (agent endpoints)
+- `docs/api-reference.md` — API reference with curl examples (agent endpoints)
+- `docs/contract-features.md` — Smart contract feature reference
+- `docs/deployment.md` — Local dev setup + deployed contract addresses
+- `docs/monad-chains.md` — Chain config, contract addresses, event signatures
+- `docs/shared-types.md` — TypeScript/Rust shared type definitions
